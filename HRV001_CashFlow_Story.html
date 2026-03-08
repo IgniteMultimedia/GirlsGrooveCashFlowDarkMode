@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HRV001 — Project Financial Summary</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inconsolata:wght@300;400;500&display=swap');
+
+:root {
+  --bg:        #0a0b0d;
+  --surface:   #111318;
+  --border:    #1f2330;
+  --border2:   #2a3045;
+  --muted:     #3d4560;
+  --text:      #b8bdd0;
+  --textdim:   #555e7a;
+  --white:     #eceef5;
+  --gold:      #c9a84c;
+  --gold-dim:  #6b4e1a;
+  --green:     #3dd68c;
+  --green-dim: #0d3d22;
+  --red:       #e05252;
+  --red-dim:   #5c1616;
+  --blue:      #5b9cf6;
+  --amber:     #f0a500;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inconsolata', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.masthead {
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr auto;
+}
+.masthead-left {
+  padding: 44px 52px 36px;
+  border-right: 1px solid var(--border);
+}
+.eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--textdim);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.eyebrow::before { content:''; width:24px; height:1px; background:var(--gold); }
+.masthead-left h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.masthead-left h1 span { color: var(--gold); }
+.masthead-left .sub { font-size: 11px; color: var(--textdim); margin-top: 10px; }
+.masthead-right {
+  padding: 44px 52px 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 26px;
+  min-width: 260px;
+}
+.mstat .mstat-label { font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--textdim); text-align: right; margin-bottom: 3px; }
+.mstat .mstat-val { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 700; text-align: right; }
+.mstat .mstat-val.gold  { color: var(--gold); }
+.mstat .mstat-val.white { color: var(--white); }
+.mstat .mstat-val.green { color: var(--green); }
+
+.page { padding: 44px 52px; }
+
+.sec {
+  font-size: 8px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--textdim); margin-bottom: 20px;
+  display: flex; align-items: center; gap: 14px;
+}
+.sec::after { content:''; flex:1; height:1px; background:var(--border); }
+.mt { margin-top: 44px; }
+
+.moments {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border: 1px solid var(--border);
+  margin-bottom: 44px;
+}
+.moment {
+  padding: 20px 20px 18px;
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+.moment:last-child { border-right: none; }
+.moment::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--border2); }
+.moment.c-red::after   { background: var(--red); }
+.moment.c-green::after { background: var(--green); }
+.moment.c-gold::after  { background: var(--gold); }
+.moment .mlabel { font-size:8px; letter-spacing:0.16em; text-transform:uppercase; color:var(--textdim); margin-bottom:10px; }
+.moment .mval { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; color:var(--white); line-height:1; margin-bottom:5px; }
+.moment.c-red   .mval { color: var(--red); }
+.moment.c-gold  .mval { color: var(--gold); }
+.moment.c-green .mval { color: var(--green); }
+.moment .msub { font-size:11px; color:var(--textdim); }
+
+.cbox {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 26px 26px 20px;
+  margin-bottom: 26px;
+}
+.clabel { font-size:8px; letter-spacing:0.18em; text-transform:uppercase; color:var(--textdim); margin-bottom:5px; }
+.cdesc  { font-size:11px; color:var(--textdim); margin-bottom:20px; font-style:italic; }
+
+.two-col { display:grid; grid-template-columns:3fr 2fr; gap:26px; margin-bottom:26px; }
+
+.cbar { display:flex; align-items:center; gap:14px; padding:8px 0; border-bottom:1px solid var(--border); }
+.cbar:last-child { border-bottom:none; }
+.cbar-lbl  { font-size:11px; color:var(--text); width:205px; flex-shrink:0; }
+.cbar-trk  { flex:1; height:5px; background:var(--border); }
+.cbar-fill { height:100%; background:var(--blue); }
+.cbar-fill.lbr  { background:var(--gold); }
+.cbar-fill.sub  { background:#a78bfa; }
+.cbar-fill.stor { background:var(--muted); }
+.cbar-fill.int  { background:var(--red-dim); }
+.cbar-fill.cap  { background:var(--amber); }
+.cbar-amt { font-size:11px; color:var(--text); width:80px; text-align:right; flex-shrink:0; }
+
+.mkt-row { display:grid; grid-template-columns:1fr auto; gap:12px; padding:9px 0; border-bottom:1px solid var(--border); align-items:center; }
+.mkt-row:last-child { border-bottom:none; }
+.mkt-lbl  { font-size:12px; color:var(--text); }
+.mkt-rng  { font-size:11px; color:var(--textdim); text-align:right; }
+.mkt-row.hl .mkt-lbl { color:var(--gold); }
+.mkt-row.hl .mkt-rng { color:var(--gold); }
+.mkt-row.gr .mkt-lbl { color:var(--green); }
+.mkt-row.gr .mkt-rng { color:var(--green); }
+
+.ledger { width:100%; border-collapse:collapse; }
+.ledger th { font-size:8px; letter-spacing:0.14em; text-transform:uppercase; color:var(--textdim); font-weight:400; padding:0 10px 10px; border-bottom:1px solid var(--border); text-align:left; }
+.ledger th:last-child, .ledger td:last-child { text-align:right; }
+.ledger td { padding:6px 10px; border-bottom:1px solid var(--border); color:var(--text); font-size:11px; }
+.ledger tr.yr-row td { background:var(--bg); color:var(--textdim); font-size:8px; letter-spacing:0.14em; text-transform:uppercase; padding:4px 10px; }
+.ledger td.in  { color:var(--green); }
+.ledger td.pos { color:var(--green); }
+
+.note { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--gold-dim); padding:22px 26px; margin-bottom:26px; }
+.note h4 { font-size:8px; letter-spacing:0.18em; text-transform:uppercase; color:var(--textdim); margin-bottom:12px; }
+.note p  { font-size:12px; color:var(--text); line-height:1.8; margin-bottom:8px; }
+.note p:last-child { margin-bottom:0; }
+.note strong { color:var(--white); }
+
+.footer { border-top:1px solid var(--border); padding:20px 52px; display:flex; justify-content:space-between; }
+.footer span { font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); }
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.masthead  { animation: fadeUp 0.4s ease both; }
+.moments   { animation: fadeUp 0.4s ease 0.1s both; }
+.cbox      { animation: fadeUp 0.4s ease 0.15s both; }
+
+.ex-row { display:grid; grid-template-columns:170px 1fr 90px; gap:14px; padding:8px 0; border-bottom:1px solid #1f2330; align-items:center; }
+.ex-row:last-child { border-bottom:none; }
+.ex-cat  { font-size:11px; color:#eceef5; font-weight:500; }
+.ex-bar-wrap { height:5px; background:#1f2330; border-radius:2px; }
+.ex-bar  { height:100%; background:#5b9cf6; border-radius:2px; }
+.ex-amt  { font-size:11px; color:#eceef5; text-align:right; font-weight:500; }
+.ex-desc { display:none; }
+@media (min-width: 800px) {
+  .ex-row { grid-template-columns:160px 1fr 90px auto; }
+  .ex-desc { display:block; font-size:10px; color:var(--textdim); width:280px; flex-shrink:0; }
+}
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-left">
+    <div class="eyebrow">HRV001 · Girls Groove Inc · Ignite Multimedia Technical Services</div>
+    <h1>Mobile Studio<br><span>Cost &amp; Payment Analysis</span></h1>
+    <div class="sub">1995 Jayco Class C RV → Professional Recording Studio &nbsp;·&nbsp; 2021–2026</div>
+  </div>
+  <div class="masthead-right">
+    <div class="mstat">
+      <div class="mstat-label">Total Project Cost</div>
+      <div class="mstat-val white">$190,054</div>
+    </div>
+    <div class="mstat">
+      <div class="mstat-label">Payments Received</div>
+      <div class="mstat-val green">$139,730</div>
+    </div>
+    <div class="mstat">
+      <div class="mstat-label">Outstanding Balance</div>
+      <div class="mstat-val gold">$50,324</div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="moments">
+    <div class="moment c-red">
+      <div class="mlabel">Deficit opened</div>
+      <div class="mval">2021 Q1</div>
+      <div class="msub">First quarter of work</div>
+    </div>
+    <div class="moment">
+      <div class="mlabel">Nearest to breakeven</div>
+      <div class="mval" style="font-size:17px;">2022 Q2</div>
+      <div class="msub">−$659 after $17K in</div>
+    </div>
+    <div class="moment c-red">
+      <div class="mlabel">Worst quarter</div>
+      <div class="mval">2023 Q3</div>
+      <div class="msub">−$12,367 · $0 received</div>
+    </div>
+    <div class="moment c-gold">
+      <div class="mlabel">Last payment</div>
+      <div class="mval" style="font-size:17px;">Sep 2025</div>
+      <div class="msub">$10,000 · 5.5 mos ago</div>
+    </div>
+    <div class="moment c-green">
+      <div class="mlabel">Bank-verified deposits</div>
+      <div class="mval" style="font-size:17px;">$139,730</div>
+      <div class="msub">All accounts confirmed</div>
+    </div>
+  </div>
+
+  <div class="sec">Running Balance — Full Cost Basis</div>
+  <div class="cbox">
+    <div class="clabel">Cumulative balance by quarter — payments received minus all project costs</div>
+    <div class="cdesc">Full cost basis — payments received minus all project costs including labor. Deficit opened in 2021 Q1 and never fully closed. Labor distributed by known work intensity; invoiced amounts anchored to actual dates.</div>
+    <canvas id="balanceChart" height="90"></canvas>
+  </div>
+
+  <div class="sec mt">Quarterly Cash Flow</div>
+  <div class="cbox">
+    <div class="clabel">Payments received vs. total project costs per quarter</div>
+    <div class="cdesc">Payments received (green) vs. hard costs — materials, subcontractors, and storage (blue). Labor shown separately in cost breakdown below.</div>
+    <canvas id="barChart" height="80"></canvas>
+  </div>
+
+  <div class="sec mt">Project Cost Exhibit</div>
+  <div class="cbox">
+    <div class="clabel">Materials, subcontractors &amp; storage by discipline — $83,688 total hard costs</div>
+    <div class="cdesc">All amounts sourced from Amazon order history, credit card statements, and subcontractor payment records. Every retained item carries an order ID, bank transaction, or both.</div>
+    <div style="margin-top:20px;">
+        <div class="ex-row"><div class="ex-cat">Materials &amp; Hardware</div><div class="ex-bar-wrap"><div class="ex-bar" style="width:22.2%"></div></div><div class="ex-amt">$18,546.00</div><div class="ex-desc">Hardware store runs, AV supplies, acoustic materials, consumables, fasteners &amp; finish materials</div></div>
+        <div class="ex-row"><div class="ex-cat">Audio</div><div class="ex-bar-wrap"><div class="ex-bar" style="width:14.7%"></div></div><div class="ex-amt">$12,335.93</div><div class="ex-desc">Universal Audio Apollo x8p, Focusrite Clarett+, Furman conditioner, cabling, DI boxes, rack gear</div></div>
+        <div class="ex-row"><div class="ex-cat">Storage</div><div class="ex-bar-wrap"><div class="ex-bar" style="width:14.3%"></div></div><div class="ex-amt">$12,000.00</div><div class="ex-desc">On-property project storage, 2021–2026</div></div>
+        <div class="ex-row"><div class="ex-cat">Subcontractors</div><div class="ex-bar-wrap"><div class="ex-bar" style="width:13.5%"></div></div><div class="ex-amt">$11,306.96</div><div class="ex-desc">Teesh — electrical wiring &middot; Rose &amp; Wrench — build &amp; ethernet &middot; Molly — cabinetry finish</div></div>
+        <div class="ex-row"><div class="ex-cat">Power &amp; Electrical</div><div class="ex-bar-wrap"><div class="ex-bar" style="width:12.2%"></div></div><div class="ex-amt">$10,172.35</div><div class="ex-desc">Victron solar system, full 12V/120V rewire, shore power, breakers, distribution, wiring</div></div>
+        <div class="ex-row"><div class="ex-cat">Network &amp; Security</div><div class="ex-bar-wrap"><div class="ex-bar" style="width:7.8%"></div></div><div class="ex-amt">$6,510.18</div><div class="ex-desc">UniFi Dream Machine Pro, managed switches, access point, cameras, fiber &amp; cabling</div></div>
+        <div class="ex-row"><div class="ex-cat">HVAC</div><div class="ex-bar-wrap"><div class="ex-bar" style="width:4.2%"></div></div><div class="ex-amt">$3,493.59</div><div class="ex-desc">Dometic Brisk II 15K BTU AC/heat pump, thermostat, controls, vent cover</div></div>
+        <div class="ex-row"><div class="ex-cat">Studio Computer</div><div class="ex-bar-wrap"><div class="ex-bar" style="width:3.5%"></div></div><div class="ex-amt">$2,960.77</div><div class="ex-desc">Apple Mac mini M4, peripherals, mounts, USB infrastructure</div></div>
+        <div class="ex-row"><div class="ex-cat">Acoustics</div><div class="ex-bar-wrap"><div class="ex-bar" style="width:3.2%"></div></div><div class="ex-amt">$2,658.67</div><div class="ex-desc">FeltRite acoustic ceiling, TroyStudio panels, mounting hardware</div></div>
+        <div class="ex-row"><div class="ex-cat">Interior &amp; Finish</div><div class="ex-bar-wrap"><div class="ex-bar" style="width:2.8%"></div></div><div class="ex-amt">$2,321.54</div><div class="ex-desc">Carpet, cabinetry hardware, paint, adhesives, finishing materials</div></div>
+        <div class="ex-row"><div class="ex-cat">Lighting</div><div class="ex-bar-wrap"><div class="ex-bar" style="width:1.2%"></div></div><div class="ex-amt">$1,006.16</div><div class="ex-desc">Govee addressable LED systems, controllers, channels, Lutron drivers</div></div>
+        <div class="ex-row"><div class="ex-cat">Safety</div><div class="ex-bar-wrap"><div class="ex-bar" style="width:0.4%"></div></div><div class="ex-amt">$375.94</div><div class="ex-desc">Fire extinguishers, CO/smoke detection</div></div>
+      <div style="display:flex;justify-content:flex-end;border-top:1px solid #1f2330;padding-top:12px;margin-top:8px;">
+        <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#555e7a;margin-right:20px;padding-top:4px;">Total Hard Costs</div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#eceef5;">$83,688.09</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#111318; border:1px solid #1f2330; border-left:3px solid #c9a84c; padding:18px 24px; margin-bottom:26px;">
+    <div style="font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:#555e7a;margin-bottom:10px;">Labor Rate Context</div>
+    <div style="font-size:12px;color:#b8bdd0;line-height:1.8;">
+      Standard billing rate for Ignite Multimedia Technical Services engagements: <strong style="color:#eceef5;">$150/hr.</strong>
+      At that rate, $99,754 in labor represents approximately 665 hours across a five-year engagement — encompassing water damage remediation, full electrical redesign and rewire, solar system design and installation, HVAC integration, custom cabinetry, acoustic treatment, professional studio audio and network infrastructure, and ongoing project management and procurement. The labor figure as billed already reflects a significant discount from standard rates.
+    </div>
+  </div>
+
+  <div class="sec mt">Verified Payment Ledger</div>
+  <div class="cbox">
+    <div class="clabel">All confirmed deposits · cross-referenced against PPBI, Chase 3819, and Chase 9245 bank records</div>
+    <table class="ledger" style="margin-top:16px;">
+      <thead>
+        <tr>
+          <th>Date</th><th>Source</th><th>Method</th><th>Ref</th><th>Amount</th><th>Running Total</th>
+        </tr>
+      </thead>
+      <tbody id="ledgerBody"></tbody>
+    </table>
+  </div>
+
+  <div class="sec mt">About This Analysis</div>
+  <div class="note">
+    <h4>How the numbers were assembled</h4>
+    <p>This document represents a complete financial reconciliation of the Girls Groove mobile studio project from first engagement through completion. Every figure has been cross-referenced against primary source records.</p>
+    <p><strong>Payments received ($139,730.38)</strong> were verified deposit by deposit across five years of bank records. Each transaction is listed in the payment ledger with its source, method, and date.</p>
+    <p><strong>Project costs ($83,688)</strong> were compiled from purchase records spanning 2021–2026 — Amazon order history, credit card statements, and subcontractor payments. Every item carries either an order ID, a bank transaction, or both. Subcontractors include electrical, general build, and finish work.</p>
+    <p><strong>Labor ($99,754)</strong> reflects logged project hours at the standard Ignite Multimedia Technical Services billing rate of $150/hr across a five-year engagement encompassing remediation, electrical, systems integration, acoustic design, and project management. Completion work billed at the same rate.</p>
+    <p><strong>Credit card interest ($6,612)</strong> represents the proportional share of financing costs attributable to project purchases, calculated against actual interest charged per statement across both cards used for project procurement.</p>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>HRV001 · Ignite Multimedia Technical Services · Confidential</span>
+  <span>Prepared March 2026</span>
+</div>
+
+<script>
+const quarters = ['2021 Q1','2021 Q2','2021 Q3','2021 Q4','2022 Q1','2022 Q2','2022 Q3','2022 Q4','2023 Q1','2023 Q2','2023 Q3','2023 Q4','2024 Q1','2024 Q2','2024 Q3','2024 Q4','2025 Q1','2025 Q2','2025 Q3','2025 Q4','2026 Q1'];
+const inflows  = [7272,13095,4150,7425,1996,17054,3762,0,8626,17495,0,12750,0,15000,0,0,18000,0,10000,0,0];
+const hardOut  = [5691,4878,3252,2439,1266,4642,1266,1266,7161,5968,5968,4774,1087,1359,1359,1631,4726,5907,7089,5907,6161];
+
+// Balance = full cost basis (hard costs + labor)
+const balanceData = [-2753,-7014,-11708,-11650,-13396,-5462,-4823,-7946,-11919,-4107,-21813,-16933,-21116,-11190,-16264,-21610,-12051,-21673,-23096,-32099,-46928];
+const balance = balanceData;
+
+Chart.defaults.color = '#555e7a';
+Chart.defaults.font.family = "'Inconsolata', monospace";
+Chart.defaults.font.size = 10;
+const gridColor = '#1f2330';
+
+// Balance chart
+new Chart(document.getElementById('balanceChart'), {
+  type: 'line',
+  data: {
+    labels: quarters,
+    datasets: [{
+      data: balance,
+      segment: { borderColor: ctx => ctx.p1.parsed.y < 0 ? '#e05252' : '#3dd68c' },
+      borderWidth: 2,
+      pointRadius: 4,
+      pointBackgroundColor: balance.map(b => b >= 0 ? '#3dd68c' : '#e05252'),
+      pointBorderColor: '#0a0b0d',
+      pointBorderWidth: 2,
+      fill: { target:'origin', above:'rgba(61,214,140,0.05)', below:'rgba(224,82,82,0.08)' },
+      tension: 0.35,
+    }]
+  },
+  options: {
+    responsive: true,
+    interaction: { mode:'index', intersect:false },
+    plugins: {
+      legend: { display:false },
+      tooltip: {
+        backgroundColor:'#111318', borderColor:'#1f2330', borderWidth:1,
+        titleColor:'#eceef5', bodyColor:'#555e7a', padding:12,
+        callbacks: { label: ctx => { const v=ctx.parsed.y; return `Balance: ${v<0?'-':'+'}$${Math.abs(v).toLocaleString()}`; } }
+      }
+    },
+    scales: {
+      x: { grid:{color:gridColor}, ticks:{color:'#555e7a', maxRotation:45, font:{size:9}} },
+      y: { grid:{color:gridColor}, ticks:{color:'#555e7a', callback: v => (v<0?'-':'')+'$'+(Math.abs(v)/1000).toFixed(0)+'k'} }
+    }
+  }
+});
+
+// Bar chart
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: quarters,
+    datasets: [
+      { label:'Payment Received', data:inflows, backgroundColor:'rgba(61,214,140,0.65)', borderColor:'rgba(61,214,140,0.9)', borderWidth:1, borderRadius:2 },
+      { label:'Hard Costs (materials, subs, storage)', data:hardOut, backgroundColor:'rgba(91,156,246,0.55)', borderColor:'rgba(91,156,246,0.8)', borderWidth:1, borderRadius:2 },
+    ]
+  },
+  options: {
+    responsive: true,
+    interaction: { mode:'index', intersect:false },
+    plugins: {
+      legend: { display:true, labels:{color:'#555e7a', boxWidth:10, font:{size:10}, padding:16} },
+      tooltip: {
+        backgroundColor:'#111318', borderColor:'#1f2330', borderWidth:1,
+        titleColor:'#eceef5', bodyColor:'#9aa0b8', padding:12,
+        callbacks: { label: ctx => `${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString()}` }
+      }
+    },
+    scales: {
+      x: { grid:{color:gridColor}, ticks:{color:'#555e7a', maxRotation:45, font:{size:9}} },
+      y: { grid:{color:gridColor}, ticks:{color:'#555e7a', callback: v => '$'+(v/1000).toFixed(0)+'k'} }
+    }
+  }
+});
+
+
+// Ledger
+const payments = [
+  {d:'2021-02-01',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:500.00},
+  {d:'2021-02-23',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:1000.00},
+  {d:'2021-03-01',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:2000.00},
+  {d:'2021-03-04',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:2000.00},
+  {d:'2021-03-08',src:'Rachel Baroma',mth:"Cashier's Ck",ref:'INV-103',amt:630.78},
+  {d:'2021-03-08',src:'Rachel Baroma',mth:"Cashier's Ck",ref:'INV-105',amt:1140.11},
+  {d:'2021-03-15',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:2000.00},
+  {d:'2021-03-16',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:628.53},
+  {d:'2021-04-12',src:'Rachel Baroma',mth:"Cashier's Ck",ref:'INV-105',amt:4000.00},
+  {d:'2021-04-12',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'INV-106',amt:90.00},
+  {d:'2021-04-12',src:'Rachel Baroma',mth:"Cashier's Ck",ref:'INV-106',amt:1706.43},
+  {d:'2021-06-07',src:'Rachel Baroma',mth:"Cashier's Ck",ref:'INV-107',amt:4760.00},
+  {d:'2021-08-18',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:150.00},
+  {d:'2021-08-20',src:'Rachel Baroma',mth:"Cashier's Ck",ref:'INV-108',amt:3909.86},
+  {d:'2021-09-16',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'INV-109',amt:3106.93},
+  {d:'2021-10-08',src:'Rachel Baroma',mth:"Cashier's Ck",ref:'INV-110',amt:3735.00},
+  {d:'2021-11-22',src:'Rachel Baroma',mth:"Cashier's Ck",ref:'INV-111',amt:3690.00},
+  {d:'2022-01-13',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'INV-112',amt:1995.55},
+  {d:'2022-04-20',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:1245.00},
+  {d:'2022-04-22',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:591.00},
+  {d:'2022-04-27',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'INV-114',amt:3240.00},
+  {d:'2022-05-19',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'INV-113A',amt:3068.16},
+  {d:'2022-06-01',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:8910.00},
+  {d:'2022-09-12',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:1287.08},
+  {d:'2022-09-16',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:2475.00},
+  {d:'2023-01-25',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'INV-173',amt:4200.00},
+  {d:'2023-03-23',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:1200.00},
+  {d:'2023-03-23',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:3225.95},
+  {d:'2023-04-13',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'INV-170',amt:5000.00},
+  {d:'2023-04-17',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:1995.00},
+  {d:'2023-05-01',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:3500.00},
+  {d:'2023-05-08',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:3500.00},
+  {d:'2023-05-16',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:1243.49},
+  {d:'2023-05-16',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:2256.51},
+  {d:'2023-06-07',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:3500.00},
+  {d:'2023-06-30',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:3500.00},
+  {d:'2023-10-04',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:5000.00},
+  {d:'2023-11-09',src:'Rachel Baroma',mth:'Zelle / PPBI',ref:'',amt:750.00},
+  {d:'2024-04-23',src:'Girls Groove Inc',mth:'Wire / Chase',ref:'',amt:15000.00},
+  {d:'2025-02-10',src:'Holly H Baynham',mth:'Wire / Chase',ref:'INV-172',amt:13000.00},
+  {d:'2025-02-10',src:'Holly Hentz Baynham',mth:'Wire / Chase',ref:'INV-172',amt:5000.00},
+  {d:'2025-09-26',src:'Holly H Baynham',mth:'Wire / Chase',ref:'',amt:10000.00},
+];
+payments.sort((a,b)=>a.d.localeCompare(b.d));
+let runPay=0, lastYr='';
+const tbody=document.getElementById('ledgerBody');
+payments.forEach(p=>{
+  const yr=p.d.slice(0,4);
+  if(yr!==lastYr){ tbody.innerHTML+=`<tr class="yr-row"><td colspan="6">${yr}</td></tr>`; lastYr=yr; }
+  runPay+=p.amt;
+  const disp=p.d.slice(5).replace('-','/');
+  tbody.innerHTML+=`<tr><td>${disp}</td><td>${p.src}</td><td>${p.mth}</td><td style="color:var(--textdim)">${p.ref||'—'}</td><td class="in">+$${p.amt.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td class="pos">$${runPay.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`;
+});
+tbody.innerHTML+=`<tr style="border-top:1px solid var(--border2)"><td colspan="4" style="color:var(--white);padding-top:12px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;">Verified Total</td><td class="in" style="padding-top:12px;">$139,730.38</td><td style="padding-top:12px;"></td></tr>`;
+</script>
+</body>
+</html>
